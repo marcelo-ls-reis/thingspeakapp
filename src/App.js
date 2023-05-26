@@ -1,25 +1,33 @@
-import logo from './logo.svg';
-import './App.css';
+import React, { useEffect, useState } from 'react';
+import axios from 'axios';
 
-function App() {
+const App = () => {
+  const [temperature, setTemperature] = useState(null);
+  const [humidity, setHumidity] = useState(null);
+  useEffect(() => {
+    fetchData();
+  }, []);
+  const fetchData = async () => {
+    try {
+      const response = await axios.get('https://api.thingspeak.com/channels/2068822/feeds.json?api_key=O4UO2E3ETQILY3RJ&results=20');
+      const data = response.data.feeds[0];
+      const dataArray = [];
+      dataArray.push({temp: data.field1, hum: data.field2});
+      console.log(dataArray);
+      setTemperature(data.field1);
+      setHumidity(data.field2);
+    }
+    catch (error) {
+      console.error(error);
+    }
+  };
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div>
+      <h1>Temperature: {temperature}</h1>
+      <h1>Humidity: {humidity}</h1>
     </div>
   );
-}
+};
 
-export default App;
+export default App
+
