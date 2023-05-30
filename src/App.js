@@ -1,33 +1,50 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
 
 const App = () => {
-  const [temperature, setTemperature] = useState(null);
-  const [humidity, setHumidity] = useState(null);
+  const [data, setData] = useState([]);
+
   useEffect(() => {
     fetchData();
+    const interval = setInterval(fetchData, 5000); // Atualiza a cada 5 segundos
+
+    return () => clearInterval(interval); // Limpa o intervalo quando o componente é desmontado
   }, []);
+
   const fetchData = async () => {
     try {
-      const response = await axios.get('https://api.thingspeak.com/channels/2068822/feeds.json?api_key=O4UO2E3ETQILY3RJ&results=20');
-      const data = response.data.feeds[0];
-      const dataArray = [];
-      dataArray.push({temp: data.field1, hum: data.field2});
-      console.log(dataArray);
-      setTemperature(data.field1);
-      setHumidity(data.field2);
-    }
-    catch (error) {
+      const response = await axios.get(
+        'https://api.thingspeak.com/channels/2068822/feeds.json?api_key=O4UO2E3ETQILY3RJ&results=96'
+      );
+
+      const feeds = response.data.feeds;
+      const formattedData = feeds.map(feed => ({
+        time: feed.created_at,
+        temperature: parseFloat(feed.field1),
+        humidity: parseFloat(feed.field2),
+      }));
+
+      setData(formattedData);
+    } catch (error) {
       console.error(error);
     }
   };
+
   return (
     <div>
-      <h1>Temperature: {temperature}</h1>
-      <h1>Humidity: {humidity}</h1>
+      <h1>Projeto IOT 4º DSM</h1>
+      <LineChart width={1000} height={400} data={data}>
+        <CartesianGrid strokeDasharray="3 3" />
+        <XAxis dataKey="time" />
+        <YAxis />
+        <Tooltip />
+        <Legend />
+        <Line type="monotone" dataKey="temperature" stroke="red" name="Temperature (°C)" />
+        <Line type="monotone" dataKey="humidity" stroke="blue" name="Humidity (%)" />
+      </LineChart>
     </div>
   );
 };
 
-export default App
-
+export default App;
